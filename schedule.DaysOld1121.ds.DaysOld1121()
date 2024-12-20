@@ -1,0 +1,36 @@
+void schedule.DaysOld1121()
+{
+	webhookURL = "https://hooks.zapier.com/hooks/catch/5570658/2rl0unk/"; 
+	resp = zoho.crm.getRecords("Production",0,200,{"cvid":2724634000290202527});
+	recordsToSend = List();
+
+	for each  ele in resp
+	{
+		prodid = ele.get("id");
+		resdate = ele.get("Est_Comp_Date");
+		ageing = zoho.currentdate.days360(resdate);
+		
+		recordMap = Map();
+        recordMap.put("id", prodid);
+        recordMap.put("Est_Comp_Date", resdate);
+        recordMap.put("Days_to_Complete", ageing);
+        
+        recordsToSend.add(recordMap);
+
+		mp = Map();
+		mp.put("Days_to_Complete",ageing);
+		update = zoho.crm.updateRecord("Production",prodid,mp);				
+	}
+	info recordsToSend;
+}
+
+webhookHeader = {"Content-Type": "application/json"};
+webhookResponse  = invokeurl
+[
+	url: webhookURL
+	type: POST
+	parameters: recordsToSend
+	headers: webhookHeader
+];
+
+info webhookResponse;
